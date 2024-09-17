@@ -1,4 +1,4 @@
-//package com.example.AudioConferencing;
+//package vnrtc1;
 //
 //import org.springframework.stereotype.Component;
 //import org.springframework.web.socket.*;

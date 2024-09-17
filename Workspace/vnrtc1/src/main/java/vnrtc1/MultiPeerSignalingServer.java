@@ -1,43 +1,47 @@
 package vnrtc1;
 
-import javax.websocket.*;
-import javax.websocket.server.ServerEndpoint;
+import org.springframework.web.socket.WebSocketHandler;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketHandler;
+import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-@ServerEndpoint("/signal")
-public class MultiPeerSignalingServer {
+public class MultiPeerSignalingServer extends TextWebSocketHandler {
 
-    private static final Set<Session> sessions = Collections.synchronizedSet(new HashSet<>());
+    private static final Set<WebSocketSession> sessions = Collections.synchronizedSet(new HashSet<>());
 
-    @OnOpen
-    public void onOpen(Session session) {
+    @Override
+    public void afterConnectionEstablished(WebSocketSession session) throws IOException {
         sessions.add(session);
         System.out.println("New connection established: " + session.getId());
     }
 
-    @OnMessage
-    public void onMessage(String message, Session session) throws IOException {
-        System.out.println("Received message from " + session.getId() + ": " + message);
+    @Override
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
+        System.out.println("Received message from " + session.getId() + ": " + message.getPayload());
 
         // Broadcast the message to all connected clients except the sender
-        for (Session s : sessions) {
+        for (WebSocketSession s : sessions) {
             if (!s.equals(session)) {
-                s.getBasicRemote().sendText(message);
+                s.sendMessage(message);
             }
         }
     }
+    
 
-    @OnClose
-    public void onClose(Session session, CloseReason closeReason) {
+    @Override
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws IOException {
         sessions.remove(session);
         System.out.println("Connection closed: " + session.getId());
     }
 
-    @OnError
-    public void onError(Session session, Throwable throwable) {
-        System.out.println("Error for session " + session.getId() + ": " + throwable.getMessage());
+    @Override
+    public void handleTransportError(WebSocketSession session, Throwable exception) throws IOException {
+        System.out.println("Error for session " + session.getId() + ": " + exception.getMessage());
     }
 }

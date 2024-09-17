@@ -10,16 +10,16 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class Vnrtc1Application {
     public static void main(String[] args) {
         SpringApplication.run(Vnrtc1Application.class, args);
-        Server server = new Server("localhost", 8080, "/",null, MultiPeerSignalingServer.class);
+       // Server server = new Server("localhost", 8072, "/", MultiPeerSignalingServer.class);
         try {
-            server.start();
-            System.out.println("WebSocket server started on ws://localhost:8080/signal");
+         //   server.start();
+            System.out.println("WebSocket server started on ws://localhost:8072/signal");
             // Keep the server running
             Thread.currentThread().join();
-        } catch (DeploymentException | InterruptedException e) {
+        } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
-            server.stop();
+         //   server.stop();
         }
     }
 }
