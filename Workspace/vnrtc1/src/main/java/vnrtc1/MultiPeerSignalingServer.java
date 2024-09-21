@@ -1,47 +1,72 @@
 package vnrtc1;
 
-import org.springframework.web.socket.WebSocketHandler;
-import org.springframework.web.socket.WebSocketSession;
-import org.springframework.web.socket.CloseStatus;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketHandler;
-import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Hashtable;
 
-public class MultiPeerSignalingServer extends TextWebSocketHandler {
+import javax.websocket.OnClose;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
+import javax.websocket.server.ServerEndpoint;
 
-    private static final Set<WebSocketSession> sessions = Collections.synchronizedSet(new HashSet<>());
+import org.json.JSONObject;
 
-    @Override
-    public void afterConnectionEstablished(WebSocketSession session) throws IOException {
-        sessions.add(session);
-        System.out.println("New connection established: " + session.getId());
+@ServerEndpoint("/ws")
+public class MultiPeerSignalingServer {
+
+    private static final Hashtable<String, Session> sessions = new Hashtable<>();
+
+    @OnOpen
+    public void onOpen(Session session) {
+        sessions.put(session.getId(), session);
+        doSendToAllClients(session);
     }
 
-    @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
-        System.out.println("Received message from " + session.getId() + ": " + message.getPayload());
+    @OnMessage
+    public void onMessage(String message, Session session) throws IOException {
+    	JSONObject 	json 	= 	new JSONObject(message);
+    	String 		type 	=	json.getString("type");	
+    	String 		id 		= json.getString("partnerId");
+    	String 		res;
+    	
+    	switch (type) {
+		case "signal":
+			if (!sessions.get(id).equals(null)) return;
+			res = new JSONObject().put("type", "signal").put("partnerId", session.getId()).put("signal", json.getString("signal")).toString();
+			sessions.get(id).getBasicRemote().sendText(res);
+			break;
+			
+		case "initSend":
+			res = new JSONObject().put("type", "initSend").put("partnerId", session.getId()).toString();
+			sessions.get(id).getBasicRemote().sendText(res);
+			break;
+			
+		case "disconnect":
+	
+			break;
 
-        // Broadcast the message to all connected clients except the sender
-        for (WebSocketSession s : sessions) {
-            if (!s.equals(session)) {
-                s.sendMessage(message);
-            }
-        }
+		default:
+			break;
+		}
     }
     
-
-    @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws IOException {
-        sessions.remove(session);
-        System.out.println("Connection closed: " + session.getId());
+    public void doSendToAllClients (Session session) {
+        // Phát tín hiệu cho tất cả các session khác, trừ session đang gửi
+		sessions.forEach((id, s) -> {
+			try {
+				if (!s.equals(session)) {
+					String res = new JSONObject().put("type", "initReceive").put("partnerId", s.getId()).toString();
+					s.getBasicRemote().sendText(res);
+				}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});
     }
 
-    @Override
-    public void handleTransportError(WebSocketSession session, Throwable exception) throws IOException {
-        System.out.println("Error for session " + session.getId() + ": " + exception.getMessage());
+    @OnClose
+    public void onClose(Session session) {
+        sessions.remove(session.getId());
     }
 }

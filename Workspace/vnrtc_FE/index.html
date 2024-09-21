@@ -3,56 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebRTC Video Call</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-        }
-
-        #controls {
-            margin-top: 20px;
-        }
-
-        #videos {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }
-
-        video {
-            width: 300px;
-            height: 200px;
-            margin: 10px;
-            background-color: black;
-        }
-
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin: 5px;
-            cursor: pointer;
-        }
-    </style>
+    <title>WebRTC Video Chat</title>
 </head>
 <body>
-
-    <h1>WebRTC Video Call</h1>
-
-    <div id="controls">
-        <button id="startCall">Start Call</button>
-        <button id="endCall">End Call</button>
-    </div>
-
-    <div id="videos"></div>
-    <!-- <h2>WebRTC Video Chat</h2>
-    <video id="localVideo" autoplay muted></video>
-    <video id="remoteVideo" autoplay></video> -->
-
-    <script src="/main.js"></script>
-
+    <h2>WebRTC Multi-Client Video Chat</h2>
+    <video id="localVideo" autoplay playsinline muted></video>
+    <div id="remoteVideos"></div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/simple-peer@9.11.1/simplepeer.min.js"></script>
+    <script src="main.js"></script>
 </body>
 </html>
