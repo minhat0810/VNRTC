@@ -20,6 +20,7 @@ public class MultiPeerSignalingServer {
     public void onOpen(Session session) {
         sessions.put(session.getId(), session);
         doSendToAllClients(session);
+        System.out.println("C" +session.getId());
     }
 
     @OnMessage
@@ -31,9 +32,22 @@ public class MultiPeerSignalingServer {
     	
     	switch (type) {
 		case "signal":
-			if (!sessions.get(id).equals(null)) return;
-			res = new JSONObject().put("type", "signal").put("partnerId", session.getId()).put("signal", json.getString("signal")).toString();
-			sessions.get(id).getBasicRemote().sendText(res);
+			//if (!sessions.get(id).equals(null)) return;
+		//	 JSONObject signal = json.getJSONObject("signal");
+//			res = new JSONObject().put("type", "signal").put("partnerId", session.getId()).put("signal", json.getString("signal")).toString();
+//			sessions.get(id).getBasicRemote().sendText(res);
+			  // Lấy đối tượng signal từ client (dưới dạng JSONObject)
+		    JSONObject signalData = json.getJSONObject("signal");
+		    
+		    // Tạo đối tượng JSON mới để gửi đến peer khác
+		    res = new JSONObject()
+		            .put("type", "signal")
+		            .put("partnerId", session.getId())
+		            .put("signal", signalData)  // Gửi trực tiếp JSONObject này
+		            .toString();
+		    
+		    // Gửi thông điệp tới peer đối tác
+		    sessions.get(id).getBasicRemote().sendText(res);
 			break;
 			
 		case "initSend":
@@ -55,7 +69,7 @@ public class MultiPeerSignalingServer {
 		sessions.forEach((id, s) -> {
 			try {
 				if (!s.equals(session)) {
-					String res = new JSONObject().put("type", "initReceive").put("partnerId", s.getId()).toString();
+					String res = new JSONObject().put("type", "initReceive").put("partnerId", session.getId()).toString();
 					s.getBasicRemote().sendText(res);
 				}
 			} catch (Exception e) {

@@ -9,7 +9,7 @@ public class Vnrtc1Application {
         Server server = new Server("localhost", 8080, "/", MultiPeerSignalingServer.class);
         try {
             server.start();
-            System.out.println("WebSocket server started on ws://localhost:8080/signal");
+            System.out.println("WebSocket server started on ws://localhost:8080/ws");
             // Keep the server running
             Thread.currentThread().join();
         } catch (InterruptedException e) {
