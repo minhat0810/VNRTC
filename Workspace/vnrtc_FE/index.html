@@ -1,16 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebRTC Video Chat</title>
+    <style>
+        body {
+                font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0;
+    height: 100vh; /* Chiều cao 100% của cửa sổ trình duyệt */
+    overflow: hidden; /* Ẩn cuộn */
+        }
+
+        #remoteVideos {
+            display: flex;
+            /* Sử dụng flexbox để căn chỉnh video */
+            flex-wrap: wrap;
+            /* Cho phép video xuống hàng khi không đủ chỗ */
+            justify-content: center;
+            /* Căn giữa các video */
+            gap: 10px;
+            /* Khoảng cách giữa các video */
+            margin-top: 20px;
+            /* Khoảng cách từ video local đến video remote */
+        }
+
+        video {
+            width: 250px;
+            /* Kích thước video */
+            height: auto;
+            /* Tự động điều chỉnh chiều cao */
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .call-end {
+            background-color: #dc3545;
+        }
+
+        .call-end:hover {
+            background-color: #c82333;
+        }
+    </style>
 </head>
+
 <body>
     <h2>WebRTC Multi-Client Video Chat</h2>
-    <video style="width: 500px; height: 500px;" id="localVideo" autoplay playsinline muted></video>
+    <video style="width: 450px; height: 450px; margin: 0" id="localVideo" autoplay playsinline muted></video>
     <div id="remoteVideos"></div>
-    
+
+    <div class="controls">
+        <button id="muteButton">Tắt mic</button>
+        <button id="cameraButton">Tắt camera</button>
+        <button id="endCallButton" class="call-end">Kết thúc cuộc gọi</button>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/simple-peer@9.11.1/simplepeer.min.js"></script>
     <script src="main.js"></script>
 </body>
+
 </html>

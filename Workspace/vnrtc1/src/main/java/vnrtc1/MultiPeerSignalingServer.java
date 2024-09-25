@@ -20,7 +20,7 @@ public class MultiPeerSignalingServer {
     public void onOpen(Session session) {
         sessions.put(session.getId(), session);
         doSendToAllClients(session);
-        System.out.println("C" +session.getId());
+        System.out.println("Connected: " +session.getId());
     }
 
     @OnMessage

@@ -2,6 +2,13 @@ const localVideo = document.getElementById('localVideo');
 let localStream = null;
 const remoteVideos = document.getElementById('remoteVideos');
 let peers = {};
+let connectedPeers = {};
+const toggleMicButton = document.getElementById('muteButton');
+const toggleCamButton = document.getElementById('cameraButton');
+const toggleEndCallButton = document.getElementById('endCallButton');
+let micEnabled = true;
+let camEnabled = true;
+
 
 // Thiết lập stream video từ camera
 const startMedia = async function() {
@@ -20,6 +27,7 @@ const startMedia = async function() {
 
 startMedia(); // Gọi hàm để khởi động việc lấy camera
 
+
 // Hàm khởi tạo WebSocket sau khi localStream đã sẵn sàng
 function initWebSocket() {
     const ws = new WebSocket('ws://localhost:8080/ws'); // Điều chỉnh địa chỉ theo server
@@ -29,7 +37,9 @@ function initWebSocket() {
         const message = JSON.parse(event.data);
         const { type, partnerId, signal } = message;
         console.log(type, partnerId);
-
+        // connectedPeers[partnerId] = peers[partnerId]
+        // console.log(con);
+        
         switch (type) {
             case 'initReceive':
                 addPeer(partnerId, false);
@@ -67,6 +77,8 @@ function initWebSocket() {
             trickle: false
         });
 
+          connectedPeers[partnerId] = peers[partnerId]; // Lưu peer vào danh sách
+
         peers[partnerId].on('signal', data => {
             sendSignal({
                 signal: data,
@@ -89,4 +101,63 @@ function initWebSocket() {
             console.error('Lỗi trong kết nối với peer:', err);
         });
     };
+    toggleEndCallButton.addEventListener('click', () => {
+     if (localStream) {
+        const tracks = localStream.getTracks();
+
+        tracks.forEach(function (track) {
+            track.stop()
+        })
+
+        localVideo.srcObject = null
+    }
+
+    for (let socket_id in peers) {
+        removePeer(socket_id)
+    }
+    });
+}
+
+
+// Khi nhấn nút bật/tắt mic
+toggleMicButton.addEventListener('click', function () {
+    micEnabled = !micEnabled;
+    
+    // Bật hoặc tắt audio track
+    localStream.getAudioTracks().forEach(track => track.enabled = micEnabled);
+    
+    // Cập nhật tên nút
+    toggleMicButton.innerText = micEnabled ? "Tắt Mic" : "Bật Mic";
+});
+
+// Khi nhấn nút bật/tắt camera
+toggleCamButton.addEventListener('click', function () {
+    camEnabled = !camEnabled;
+    
+    // Bật hoặc tắt video track
+    localStream.getVideoTracks().forEach(track => track.enabled = camEnabled);
+    
+    // Cập nhật tên nút
+    toggleCamButton.innerText = camEnabled ? "Tắt Camera" : "Bật Camera";
+});
+
+
+
+function endPeerConnection() {
+    if (peers[partnerId]) {
+        // Hủy kết nối peer
+        peers[partnerId].destroy();
+        console.log(`Đã kết thúc cuộc gọi với peer: ${partnerId}`);
+
+        // Xóa video của peer từ giao diện
+        const remoteVideo = document.getElementById(`video-${partnerId}`);
+        if (remoteVideo) {
+            remoteVideo.srcObject.getTracks().forEach(track => track.stop()); // Dừng stream
+            remoteVideo.remove(); // Xóa phần tử video
+        }
+
+        // Xóa peer khỏi danh sách các peer
+        delete peers[partnerId];
+        delete connectedPeers[partnerId]; // Cập nhật danh sách connectedPeers
+    }
 }
