@@ -33,10 +33,9 @@
         }
 
         video {
-            width: 250px;
-            /* Kích thước video */
-            height: auto;
-            /* Tự động điều chỉnh chiều cao */
+            width: 450px; 
+            height: 450px; 
+            margin: 10px;
         }
 
         .controls {
@@ -72,8 +71,10 @@
 
 <body>
     <h2>WebRTC Multi-Client Video Chat</h2>
-    <video style="width: 450px; height: 450px; margin: 0" id="localVideo" autoplay playsinline muted></video>
-    <div id="remoteVideos"></div>
+    <div style="display: flex;">
+        <video id="localVideo" autoplay playsinline muted></video>
+        <div id="remoteVideos"></div>
+    </div>
 
     <div class="controls">
         <button id="muteButton">Tắt mic</button>
