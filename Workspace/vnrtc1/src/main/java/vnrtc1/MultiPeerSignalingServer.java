@@ -26,19 +26,19 @@ public class MultiPeerSignalingServer {
     public void onMessage(String message, Session session) throws IOException {
     	JSONObject 	json 	= 	new JSONObject(message);
     	String 		type 	=	json.getString("type");	
-    	String 		id 		= json.getString("partnerId");
-    	String 		res;
+    	String 		id 		= 	json.getString("partnerId");
+    	JSONObject 	res 	= 	new JSONObject();
     	
     	switch (type) {
 		case "signal":
-			if (!sessions.get(id).equals(null)) return;
-			res = new JSONObject().put("type", "signal").put("partnerId", session.getId()).put("signal", json.getString("signal")).toString();
-			sessions.get(id).getBasicRemote().sendText(res);
+//			if (!id.equals(null)) return;
+			res.put("type", "signal").put("partnerId", session.getId()).put("signal", json.getJSONObject("signal"));
+			sessions.get(id).getBasicRemote().sendText(res.toString());
 			break;
 			
 		case "initSend":
-			res = new JSONObject().put("type", "initSend").put("partnerId", session.getId()).toString();
-			sessions.get(id).getBasicRemote().sendText(res);
+			res = new JSONObject().put("type", "initSend").put("partnerId", session.getId());
+			sessions.get(id).getBasicRemote().sendText(res.toString());
 			break;
 			
 		case "disconnect":
@@ -55,8 +55,8 @@ public class MultiPeerSignalingServer {
 		sessions.forEach((id, s) -> {
 			try {
 				if (!s.equals(session)) {
-					String res = new JSONObject().put("type", "initReceive").put("partnerId", s.getId()).toString();
-					s.getBasicRemote().sendText(res);
+					JSONObject res = new JSONObject().put("type", "initReceive").put("partnerId", session.getId());
+					s.getBasicRemote().sendText(res.toString());
 				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
