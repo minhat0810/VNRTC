@@ -56,12 +56,26 @@ public class MultiPeerSignalingServer {
 			break;
 			
 		case "disconnect":
-	
+			doDisconnect(session);
 			break;
 
 		default:
 			break;
 		}
+    }
+    
+    public void doDisconnect(Session session) {
+    	String res = new JSONObject().put("type", "disconnect").put("partnerId", session.getId()).toString();
+		sessions.forEach((id, s) -> {
+			try {
+				if (!s.equals(session)) {
+					s.getBasicRemote().sendText(res);
+				}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});
     }
     
     public void doSendToAllClients (Session session) {

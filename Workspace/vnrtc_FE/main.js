@@ -9,11 +9,13 @@ const toggleEndCallButton = document.getElementById('endCallButton');
 let micEnabled = true;
 let camEnabled = true;
 
+let ws;
+
 
 // Thiết lập stream video từ camera
 const startMedia = async function() {
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = stream;
         localStream = stream;
         console.log('localStream sẵn sàng:', localStream);
@@ -30,7 +32,7 @@ startMedia(); // Gọi hàm để khởi động việc lấy camera
 
 // Hàm khởi tạo WebSocket sau khi localStream đã sẵn sàng
 function initWebSocket() {
-    const ws = new WebSocket('ws://localhost:8080/ws'); // Điều chỉnh địa chỉ theo server
+    ws = new WebSocket('ws://localhost:8080/ws'); // Điều chỉnh địa chỉ theo server
 
     // Khi nhận được thông điệp từ server
     ws.onmessage = function (event) {
@@ -55,6 +57,9 @@ function initWebSocket() {
                 } else {
                     console.error("Peer chưa được khởi tạo:", partnerId);
                 }
+                break;
+            case 'disconnect':
+                endPeerConnection(partnerId);
                 break;
         }
     };
@@ -94,6 +99,7 @@ function initWebSocket() {
             remoteVideo.srcObject = remoteStream;
             remoteVideo.autoplay = true;
             remoteVideo.playsInline = true;
+            remoteVideo.id = 'video-'+ partnerId;
             remoteVideos.appendChild(remoteVideo);
         });
 
@@ -101,8 +107,10 @@ function initWebSocket() {
             console.error('Lỗi trong kết nối với peer:', err);
         });
     };
-    toggleEndCallButton.addEventListener('click', () => {
-     if (localStream) {
+}
+
+toggleEndCallButton.addEventListener('click', () => {
+    if (localStream) {
         const tracks = localStream.getTracks();
 
         tracks.forEach(function (track) {
@@ -113,11 +121,12 @@ function initWebSocket() {
     }
 
     for (let socket_id in peers) {
-        removePeer(socket_id)
+        endPeerConnection(socket_id)
     }
-    });
-}
 
+    ws.send(JSON.stringify({ type: 'disconnect', partnerId: "" }));
+    ws.close();
+});
 
 // Khi nhấn nút bật/tắt mic
 toggleMicButton.addEventListener('click', function () {
@@ -143,14 +152,14 @@ toggleCamButton.addEventListener('click', function () {
 
 
 
-function endPeerConnection() {
+function endPeerConnection(partnerId) {
     if (peers[partnerId]) {
         // Hủy kết nối peer
         peers[partnerId].destroy();
         console.log(`Đã kết thúc cuộc gọi với peer: ${partnerId}`);
 
         // Xóa video của peer từ giao diện
-        const remoteVideo = document.getElementById(`video-${partnerId}`);
+        const remoteVideo = document.getElementById('video-'+ partnerId);
         if (remoteVideo) {
             remoteVideo.srcObject.getTracks().forEach(track => track.stop()); // Dừng stream
             remoteVideo.remove(); // Xóa phần tử video
